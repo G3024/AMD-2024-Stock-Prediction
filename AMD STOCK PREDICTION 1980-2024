@@ -1,0 +1,90 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# reading data [FIRST (AMD1980.CSV)]
+data = pd.read_csv('AMD1980.csv')
+
+# splitting data X and Y
+Y = data.Close
+X = data.drop('Close', axis='columns')
+X = X.drop('Date',axis='columns')
+
+from sklearn.linear_model import LinearRegression
+linear_ = LinearRegression().fit(X, Y)
+
+
+# Testing with ytrain
+from sklearn.model_selection import train_test_split
+xtrain, xtest, ytrain, ytest = train_test_split(X, Y, random_state=1, train_size=0.2, shuffle=True)
+
+
+
+linear_.intercept_, linear_.coef_
+'''
+-0.04482955516727927 [-8.87846933e-02  5.50457830e-01  5.38532831e-01  7.32021462e-10]
+'''
+
+X[:3]
+'''
+     Open      High       Low    Volume    Close
+     0.0     3.125000  2.937500  727200  3.031250
+     0.0     3.083333  3.020833  295200  3.041667
+     0.0     3.062500  3.010417  159600  3.010417
+'''
+
+xtest[:3], linear_.predict(xtest[:3])
+'''
+         Open    High     Low    Volume
+307    0.00000   4.375   4.250    466800
+5018  17.28125  20.250  17.250  10805800
+1735   8.93750   9.000   8.625    829600 [ 4.65252969 18.86523244  8.76123067],
+
+[ 4.65252969 18.86523244  8.76123067]
+'''
+
+linear_.score(xtest, ytest)*100 # 99.96%
+
+
+
+# Second datasets
+data_ = pd.read_csv('AMD2023.csv')
+
+# drop data
+data = data_.drop('Date', axis='columns')
+data = data.drop('Close', axis='columns')
+
+# seperate X and Y as data and target
+X = data_.Close
+Y = data
+
+# do the train test split
+xtrain_, xtest_, ytrain_, ytest_ = train_test_split(X, Y, random_state=1, shuffle=True, train_size=0.2)
+
+# training fit and test
+xtrain_, xtest_, ytrain_, ytest_  = pd.DataFrame(xtrain_), pd.DataFrame(xtest_), pd.DataFrame(ytrain_), pd.DataFrame(ytest_)
+linear_.fit(xtrain_, ytrain_)
+linear_.score(xtest_, ytest_) # 76.71%
+
+
+
+
+print(data_)
+# combining xtrain and ytrain_
+xtrainytest_concat = pd.concat([xtrain, ytest_])
+ytrainxtest_concat = pd.concat([ytrain, xtest_])
+xtrain1, xtest1, ytrain1, ytest1 = train_test_split(xtrainytest_concat, ytrainxtest_concat, shuffle=True, random_state=1, train_size=0.2)
+linear1 = LinearRegression()
+linear1.fit(xtrain1, ytrain1)
+linear1.score(xtest1, ytest1)*100 # 99.96
+
+# Testing
+print(linear1.predict([[66.0, 66.88, 63.59, 468518]])) #[[65.20651853]]
+'''
+        Open    High    Low    Volume
+        66.0   66.88   63.59   468518
+
+from datasets the close should be around [64.019997] and we got [65.20651853], which means 1.819% more than the it should be! :) success by combining two datasets after their own splitting datatest and datatrain
+What I gain:
+1. increasing model accuracy score from first data sets which is 96.96% and the second model accuracy is 76.71%, which combine might have mean around 88.35%, BUT I DECIDE TO CONCAT THEM TOGETHER AND HAVE THE ACCUARCY SCORE AT 99.96% 
+'''
